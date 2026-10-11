@@ -40,13 +40,13 @@ button:disabled{opacity:.5}
 </head>
 <body>
 <main>
-<h1>Church Group</h1>
+<h1>Church Group - Fall 2026</h1>
 <p class="sub">Tap a date to sign up.</p>
 <div id="list"><p class="msg">Loading…</p></div>
 </main>
 <script>
 const API_URL = 'https://script.google.com/macros/s/AKfycbzVtzE7RPatulw4N5Jcamuwh1XJ20lmsdJ8_9eNvdIrryJremNP3s6rLPh_qxvOQBg0rA/exec';
-const TITLE = 'Church Group';
+const TITLE = 'Church Group - Fall 2026';
 
 let data = [], openDate = null, editing = null, busy = false, errors = {}, drafts = {};
 const store = {
@@ -63,13 +63,20 @@ function fmt(iso) {
   return new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
+const today = new Date().toLocaleDateString('en-CA');
+
+function setData(dates) {
+  data = dates.filter(d => d.date >= today);
+  store.set('data', data);
+}
+
 async function load() {
   try {
     const res = await fetch(API_URL);
-    data = (await res.json()).dates;
-    render();
+    setData((await res.json()).dates);
+    if (document.activeElement?.tagName !== 'INPUT') render();
   } catch {
-    document.getElementById('list').innerHTML = '<p class="msg">Couldn’t load the schedule. Refresh to try again.</p>';
+    if (!data.length) document.getElementById('list').innerHTML = '<p class="msg">Couldn’t load the schedule. Refresh to try again.</p>';
   }
 }
 
@@ -79,7 +86,7 @@ async function send(payload, errKey) {
     const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
     const json = await res.json();
     if (!json.ok) throw new Error(json.error);
-    data = json.dates;
+    setData(json.dates);
     return json;
   } catch (e) {
     errors[errKey] = e.message || 'Something went wrong. Try again.';
@@ -117,7 +124,7 @@ function role(d, r) {
   const form = full ? '' : `
     <input data-draft="n-${esc(k)}" value="${esc(draft('n-' + k, store.get('name', '')))}" placeholder="Your name" autocomplete="name">
     ${r.detail ? `<input data-draft="x-${esc(k)}" value="${esc(draft('x-' + k, ''))}" placeholder="${esc(r.detail)}">` : ''}
-    <button class="btn primary" data-act="add" ${attrs} ${dis()}>Sign up</button>`;
+    <button class="btn primary" data-act="add" ${attrs} ${dis()}>${busy ? 'Saving…' : 'Sign up'}</button>`;
   return `<div class="role"><h3>${esc(r.name)}</h3>
     ${r.signups.map(s => entry(r, s)).join('')}
     ${errors[k] ? `<p class="err">${esc(errors[k])}</p>` : ''}${form}</div>`;
@@ -135,7 +142,7 @@ function entry(r, s) {
         <button class="btn danger" data-act="remove" data-id="${esc(s.id)}" ${dis()}>Remove</button>
       </div></div>`;
   }
-  const edit = tokens[s.id] ? `<button class="link" data-act="edit" data-id="${esc(s.id)}">Edit</button>` : '';
+  const edit = s.id ? `<button class="link" data-act="edit" data-id="${esc(s.id)}">Edit</button>` : '';
   return `<div class="entry"><div>${esc(s.name)}${s.detail ? `<small>${esc(s.detail)}</small>` : ''}</div>${edit}</div>`;
 }
 
@@ -186,6 +193,8 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && !busy && !editing) load();
 });
 
+const cached = store.get('data', null);
+if (cached) { data = cached.filter(d => d.date >= today); render(); }
 load();
 </script>
 </body>
