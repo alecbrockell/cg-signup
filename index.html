@@ -122,7 +122,7 @@ function role(d, r) {
   const full = r.max && r.signups.length >= r.max;
   const attrs = `data-date="${d.date}" data-role="${esc(r.key)}"`;
   const form = full ? '' : `
-    <input data-draft="n-${esc(k)}" value="${esc(draft('n-' + k, store.get('name', '')))}" placeholder="Your name" autocomplete="name">
+    <input data-draft="n-${esc(k)}" value="${esc(draft('n-' + k, ''))}" placeholder="Your name">
     ${r.detail ? `<input data-draft="x-${esc(k)}" value="${esc(draft('x-' + k, ''))}" placeholder="${esc(r.detail)} (Optional)">` : ''}
     <button class="btn primary" data-act="add" ${attrs} ${dis()}>${busy ? 'Saving…' : 'Sign up'}</button>`;
   return `<div class="role"><h3>${esc(r.name)}</h3>
@@ -162,13 +162,12 @@ document.addEventListener('click', async e => {
 
   if (act === 'add') {
     const k = date + '|' + role;
-    const name = draft('n-' + k, store.get('name', '')).trim();
+    const name = draft('n-' + k, '').trim();
     if (!name) { errors = { [k]: 'Enter your name.' }; render(); return; }
     const res = await send({ action: 'add', date, role, name, detail: draft('x-' + k, '').trim() }, k);
     if (res) {
       tokens[res.id] = res.token;
       store.set('tokens', tokens);
-      store.set('name', name);
       delete drafts['n-' + k]; delete drafts['x-' + k];
       render();
     }
