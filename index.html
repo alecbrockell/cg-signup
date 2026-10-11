@@ -123,7 +123,7 @@ function role(d, r) {
   const attrs = `data-date="${d.date}" data-role="${esc(r.key)}"`;
   const form = full ? '' : `
     <input data-draft="n-${esc(k)}" value="${esc(draft('n-' + k, store.get('name', '')))}" placeholder="Your name" autocomplete="name">
-    ${r.detail ? `<input data-draft="x-${esc(k)}" value="${esc(draft('x-' + k, ''))}" placeholder="${esc(r.detail)}">` : ''}
+    ${r.detail ? `<input data-draft="x-${esc(k)}" value="${esc(draft('x-' + k, ''))}" placeholder="${esc(r.detail)} (Optional)">` : ''}
     <button class="btn primary" data-act="add" ${attrs} ${dis()}>${busy ? 'Saving…' : 'Sign up'}</button>`;
   return `<div class="role"><h3>${esc(r.name)}</h3>
     ${r.signups.map(s => entry(r, s)).join('')}
@@ -134,7 +134,7 @@ function entry(r, s) {
   if (editing === s.id) {
     return `<div class="edit">
       <input data-draft="en-${esc(s.id)}" value="${esc(draft('en-' + s.id, s.name))}" placeholder="Your name">
-      ${r.detail ? `<input data-draft="ex-${esc(s.id)}" value="${esc(draft('ex-' + s.id, s.detail))}" placeholder="${esc(r.detail)}">` : ''}
+      ${r.detail ? `<input data-draft="ex-${esc(s.id)}" value="${esc(draft('ex-' + s.id, s.detail))}" placeholder="${esc(r.detail)} (Optional)">` : ''}
       ${errors['e-' + s.id] ? `<p class="err">${esc(errors['e-' + s.id])}</p>` : ''}
       <div class="row">
         <button class="btn primary" data-act="save" data-id="${esc(s.id)}" ${dis()}>Save</button>
